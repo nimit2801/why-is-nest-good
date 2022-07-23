@@ -11,7 +11,9 @@ import { PrismaModule } from './prisma/prisma.module';
     UserModule,
     BookmarkModule,
     PrismaModule,
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
   ],
 })
 export class AppModule {}
