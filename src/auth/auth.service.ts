@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import { domainToASCII } from 'url';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +35,25 @@ export class AuthService {
     // return the saved user
   }
 
-  signin() {
-    return { msg: 'I am signin' };
+  async signin(dto: AuthDto) {
+    // find the user
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: dto.email,
+      },
+    });
+
+    // if the !user throw exception
+    if (!user) throw new ForbiddenException('Credentials Incorrect');
+
+    // compare pass
+    const pMatch = await argon.verify(user.hash, dto.password);
+
+    // if pass incorrect throw exception
+    if (!pMatch) throw new ForbiddenException('Credentials Incorrect');
+
+    // send back user
+    delete user.hash;
+    return user;
   }
 }
